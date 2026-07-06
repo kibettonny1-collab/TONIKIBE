@@ -90,6 +90,7 @@
         @media (max-width: 900px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -294,6 +295,14 @@ let currentUser = null;
 let isOnline = false;
 let editingScore = null;
 let editingAtt = null;
+
+function requireTeacher() {
+    if (!currentUser || currentUser.type !== 'teacher') {
+        showToast('Teacher access required');
+        return false;
+    }
+    return true;
+}
 
 function initData() {
     CLASS_LIST.forEach(cls => {
@@ -553,12 +562,23 @@ function showStudentDashboard() {
     const level = cls.split('/')[0];
     const syl = SYLLABUS_TOPICS[level];
     let total = 0;
+    let unitTotal = 0;
+    let unitMax = 0;
+    let examTotal = 0;
+    let examMax = 0;
     let scoreRows = '';
     syl.forEach(u => {
         const res = Object.values(s.unitResults[u.id] || {});
         let sc = 0;
         if (res.length > 0) sc = Math.round(((res.reduce((a,b) => a+b, 0) / res.length) * u.max) * 10) / 10;
         total += sc;
+        if (u.id === 'mid' || u.id === 'fin') {
+            examTotal += sc;
+            examMax += u.max;
+        } else {
+            unitTotal += sc;
+            unitMax += u.max;
+        }
         const pct = Math.round((sc / u.max) * 100);
         const color = pct >= 80 ? 'var(--success)' : pct >= 60 ? 'var(--warning)' : 'var(--danger)';
         scoreRows += `<tr><td>${u.title}</td><td style="text-align:center; font-weight:700; color:${color};">${sc}</td><td style="text-align:center; color:var(--gray);">${u.max}</td></tr>`;
@@ -586,11 +606,51 @@ function showStudentDashboard() {
                 <h3><i class="fas fa-tasks" style="color: var(--warning);"></i> Your Tasks</h3>
                 ${worksheets.filter(w => w.class === cls).length === 0 ? '<p style="color: var(--gray);">No tasks assigned yet.</p>' : worksheets.filter(w => w.class === cls).map(w => `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--gray-light); border-radius: 8px; margin-bottom: 8px;"><div><b>${w.title}</b><br><span class="badge" style="background: ${w.type === 'oral' ? '#fce7f3' : w.type === 'listening' ? '#dbeafe' : '#e0e7ff'}; color: ${w.type === 'oral' ? '#be185d' : w.type === 'listening' ? '#1e40af' : '#4338ca'}">${w.type.toUpperCase()}</span></div><button class="btn btn-primary btn-sm" onclick="startWs(${w.id})">Start</button></div>`).join('')}
             </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="card" style="text-align: center; border-left: 4px solid var(--primary);">
+                    <div style="font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Unit Work</div>
+                    <div style="font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1;">${Math.round(unitTotal * 10) / 10}</div>
+                    <div style="font-size: 12px; color: var(--gray);">out of 60</div>
+                </div>
+                <div class="card" style="text-align: center; border-left: 4px solid var(--warning);">
+                    <div style="font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Exams</div>
+                    <div style="font-size: 32px; font-weight: 800; color: var(--warning); line-height: 1;">${Math.round(examTotal * 10) / 10}</div>
+                    <div style="font-size: 12px; color: var(--gray);">out of 40</div>
+                </div>
+                <div class="card" style="text-align: center; border-left: 4px solid var(--success);">
+                    <div style="font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Final Score</div>
+                    <div style="font-size: 32px; font-weight: 800; color: var(--success); line-height: 1;">${Math.round(total * 10) / 10}</div>
+                    <div style="font-size: 12px; color: var(--gray);">out of 100</div>
+                    <div style="margin-top: 8px; font-size: 11px; font-weight: 600; color: ${total >= 80 ? 'var(--success)' : total >= 60 ? 'var(--warning)' : 'var(--danger)'};">
+                        ${total >= 80 ? 'Excellent!' : total >= 60 ? 'Good' : total >= 50 ? 'Needs Improvement' : 'At Risk'}
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="border-left: 4px solid var(--success);">
+                <h3><i class="fas fa-trophy" style="color: var(--success);"></i> My Final Score</h3>
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 48px; font-weight: 800; color: var(--primary); line-height: 1;">${Math.round(total * 10) / 10}</div>
+                    <div style="font-size: 14px; color: var(--gray); margin-top: 5px;">out of 100</div>
+                    <div style="margin-top: 10px; font-size: 13px; font-weight: 600; color: ${total >= 80 ? 'var(--success)' : total >= 60 ? 'var(--warning)' : 'var(--danger)'};">
+                        ${total >= 80 ? 'Excellent!' : total >= 60 ? 'Good' : total >= 50 ? 'Needs Improvement' : 'At Risk'}
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                    <div style="text-align: center; padding: 10px; background: var(--primary-light); border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--primary);">${Math.round(unitTotal * 10) / 10}</div>
+                        <div style="font-size: 11px; color: var(--gray);">Units (out of 60)</div>
+                    </div>
+                    <div style="text-align: center; padding: 10px; background: var(--warning-light); border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--warning);">${Math.round(examTotal * 10) / 10}</div>
+                        <div style="font-size: 11px; color: var(--gray);">Exams (out of 40)</div>
+                    </div>
+                </div>
+            </div>
             <div class="card">
-                <h3><i class="fas fa-chart-bar" style="color: var(--success);"></i> My Scores</h3>
+                <h3><i class="fas fa-chart-bar" style="color: var(--success);"></i> Score Breakdown</h3>
                 <table style="font-size: 12px;">
                     <thead><tr><th>Topic</th><th style="text-align:center">Score</th><th style="text-align:center">Max</th></tr></thead>
-                    <tbody>${scoreRows}<tr style="border-top: 2px solid var(--primary);"><td><b>TOTAL</b></td><td style="text-align:center; font-weight: 800; color: var(--primary); font-size: 14px;">${Math.round(total * 10) / 10}</td><td style="text-align:center; color: var(--gray);">100</td></tr></tbody>
+                    <tbody>${scoreRows}<tr style="border-top: 2px solid var(--primary);"><td><b>GRAND TOTAL</b></td><td style="text-align:center; font-weight: 800; color: var(--primary); font-size: 14px;">${Math.round(total * 10) / 10}</td><td style="text-align:center; color: var(--gray);">100</td></tr></tbody>
                 </table>
             </div>
         </div>`;
@@ -630,6 +690,7 @@ function renderSidebar() {
 }
 
 function showView(view) {
+    if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     if (view === 'dashboard') {
@@ -648,6 +709,7 @@ function showView(view) {
 }
 
 function viewClass(cls) {
+    if (!requireTeacher()) return;
     const classWs = worksheets.filter(w => w.class === cls);
     const content = document.getElementById('mainContent');
     content.innerHTML = `<div class="header"><h1>Class ${cls}</h1><button class="btn btn-primary" onclick="openWsModal('${cls}')">New Task</button></div>
@@ -657,6 +719,7 @@ function viewClass(cls) {
 }
 
 function renderAttendance() {
+    if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
     content.innerHTML = `<div class="header"><h1>Attendance</h1><div style="display:flex; gap:10px; align-items:center;">
         ${isOnline ? '<span class="sync-status online"><i class="fas fa-cloud"></i> Google Sheets</span>' : '<span class="sync-status offline"><i class="fas fa-database"></i> Local Only</span>'}
@@ -701,6 +764,7 @@ async function saveEditedAttendance() {
 }
 
 function showLinks() {
+    if (!requireTeacher()) return;
     const c = document.getElementById('attClass').value, sts = classData[c] || [], base = window.location.href.split('?')[0];
     let html = '';
     sts.forEach(s => { const url = `${base}?cls=${encodeURIComponent(c)}&stNo=${s.number}`; html += `<tr><td>${s.number}</td><td>${s.id}</td><td>${s.name}</td><td><input type="text" readonly value="${url}" style="width:100%; font-size:9px" onclick="this.select(); document.execCommand('copy'); showToast('Copied!')"></td></tr>`; });
@@ -708,6 +772,7 @@ function showLinks() {
 }
 
 function renderGradebook() {
+    if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
     content.innerHTML = `<div class="header"><h1>Master Gradebook</h1><select id="gbClass" onchange="updateGradebookTable()">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div><div class="card table-container" id="gbTable"></div>`;
     updateGradebookTable();
@@ -763,6 +828,7 @@ async function saveEditedScore() {
 }
 
 function renderRegistrations() {
+    if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
     content.innerHTML = `<div class="header"><h1>Student Registrations</h1></div>
     <div class="card table-container">
@@ -773,7 +839,8 @@ function renderRegistrations() {
     </div>`;
 }
 
-function openWsModal(cls) { 
+function openWsModal(cls) {
+    if (!requireTeacher()) return;
     document.getElementById('wsClass').innerHTML = CLASS_LIST.map(c => `<option value="${c}" ${c===cls?'selected':''}>${c}</option>`).join(''); 
     updateTopicDropdown(); 
     document.getElementById('questionBuilders').innerHTML = ''; 
@@ -898,7 +965,8 @@ async function submitWorksheet() {
     if (currentUser?.type === 'student') setTimeout(() => showStudentDashboard(), 500);
 }
 
-function renderWorksheetList() { 
+function renderWorksheetList() {
+    if (!requireTeacher()) return;
     const c = document.getElementById('mainContent'); 
     c.innerHTML = `<div class="header"><h1>Task Hub</h1><button class="btn btn-primary" onclick="openWsModal('')">New</button></div><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px">${worksheets.map(w => `<div class="card"><span class="badge" style="background:#ddd">${w.class}</span><h3 style="margin:10px 0">${w.title}</h3><button class="btn btn-primary btn-sm" onclick="startWs(${w.id})">Launch</button></div>`).join('')}</div>`; 
 }
@@ -906,7 +974,8 @@ function renderWorksheetList() {
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
-function renderSettings() { 
+function renderSettings() {
+    if (!requireTeacher()) return;
     document.getElementById('mainContent').innerHTML = `<div class="header"><h1>Settings</h1></div>
     <div class="card">
         <h3>Google Sheets Integration</h3>
