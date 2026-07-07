@@ -6,6 +6,7 @@
     <title>Mattayom Ultimate Pro 2026</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         :root {
             --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: #e0e7ff;
@@ -68,6 +69,25 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.show { opacity: 1; visibility: visible; }
         .modal { background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; text-align: center;}
+        @media (max-width: 600px) {
+            .modal { width: 95%; padding: 16px; border-radius: 12px; }
+            .modal h2 { font-size: 18px; }
+        }
+
+        /* Live Class Styles */
+        .live-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; background: var(--danger-light); color: var(--danger); animation: pulse-live 2s infinite; }
+        .live-badge.active { background: var(--danger); color: white; }
+        @keyframes pulse-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .live-student-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--success); display: inline-block; }
+        .live-student-dot.offline { background: var(--gray); }
+        #jitsiContainer { width: 100%; height: 500px; border-radius: 12px; overflow: hidden; }
+        @media (max-width: 900px) { #jitsiContainer { height: 350px; } }
+        .class-code-display { font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: var(--primary); text-align: center; padding: 20px; background: var(--primary-light); border-radius: 12px; }
+        .live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
+        .live-student-card { text-align: center; padding: 12px; background: var(--gray-light); border-radius: 10px; font-size: 12px; }
+        .live-student-card .status { font-size: 10px; margin-top: 4px; }
+        .live-student-card.online { border: 2px solid var(--success); }
+        .live-student-card.recent { border: 2px solid var(--warning); }
 
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray); }
@@ -87,7 +107,36 @@
         .editable-cell { cursor: pointer; background: var(--primary-light); border-radius: 4px; padding: 2px 6px; }
         .editable-cell:hover { background: var(--primary); color: white; }
 
-        @media (max-width: 900px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } }
+        /* Mobile Responsive */
+        .mobile-header { display: none; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+        .sidebar-overlay.show { display: block; }
+
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 16px; }
+            .mobile-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--white); border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 50; }
+            .mobile-header h1 { font-size: 16px; font-weight: 700; }
+            .mobile-menu-btn { background: none; border: none; font-size: 20px; color: var(--dark); cursor: pointer; padding: 8px; }
+            .header { flex-direction: column; gap: 12px; align-items: flex-start; }
+            .header h1 { font-size: 20px; }
+            .card { padding: 16px; }
+            table { font-size: 10px; }
+            th, td { padding: 6px 4px; }
+            .btn { padding: 10px 14px; font-size: 14px; min-height: 44px; }
+            .form-group input, .form-group select { min-height: 44px; font-size: 16px; }
+            .modal { padding: 20px 16px; width: 95%; }
+            .login-card { padding: 30px 20px; }
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 18px; }
+            table { font-size: 9px; }
+            th, td { padding: 4px 2px; }
+            .badge { font-size: 8px; padding: 2px 4px; }
+            .score-cell { font-size: 10px; }
+        }
     </style>
 <base target="_blank">
 <base target="_blank">
@@ -97,7 +146,7 @@
     <div id="loginScreen">
         <div class="login-card">
             <div class="logo-icon"><i class="fas fa-microchip"></i></div>
-            <h1>AcademicMaster</h1>
+            <h1>Tonny English Hub</h1>
             <p>Mattayom Ultimate Pro 2026</p>
             <button class="login-btn login-btn-student" onclick="enterStudentPortal()">
                 <i class="fas fa-user-graduate"></i> Student Portal
@@ -118,19 +167,29 @@
     </div>
 
     <div id="teacherDashboard" style="display:none;">
-        <aside class="sidebar">
+        <div class="mobile-header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <h1>Tonny English Hub</h1>
+            <div style="width: 36px;"></div>
+        </div>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        <aside class="sidebar" id="teacherSidebar">
             <div class="logo">
                 <div class="logo-icon"><i class="fas fa-microchip"></i></div>
-                <div class="logo-text">Academic<span>Master</span></div>
+                <div class="logo-text">Tonny<span>English Hub</span></div>
             </div>
             <div class="nav-section">
                 <div class="nav-section-title">Semester 1 Command</div>
-                <a class="nav-link active" onclick="showView('dashboard')"><i class="fas fa-home"></i> Home</a>
-                <a class="nav-link" onclick="showView('attendance')"><i class="fas fa-calendar-check"></i> Attendance</a>
-                <a class="nav-link" onclick="showView('gradebook')"><i class="fas fa-table"></i> Gradebook</a>
-                <a class="nav-link" onclick="showView('worksheets')"><i class="fas fa-microphone-alt"></i> Topics & Tasks</a>
-                <a class="nav-link" onclick="showView('registrations')"><i class="fas fa-user-plus"></i> Registrations</a>
-                <a class="nav-link" onclick="showView('settings')"><i class="fas fa-cog"></i> Settings</a>
+                <a class="nav-link active" onclick="showView('dashboard'); closeSidebarOnMobile();"><i class="fas fa-home"></i> Home</a>
+                <a class="nav-link" onclick="showView('attendance'); closeSidebarOnMobile();"><i class="fas fa-calendar-check"></i> Attendance</a>
+                <a class="nav-link" onclick="showView('gradebook'); closeSidebarOnMobile();"><i class="fas fa-table"></i> Gradebook</a>
+                <a class="nav-link" onclick="showView('worksheets'); closeSidebarOnMobile();"><i class="fas fa-microphone-alt"></i> Topics & Tasks</a>
+                <a class="nav-link" onclick="showView('registrations'); closeSidebarOnMobile();"><i class="fas fa-user-plus"></i> Registrations</a>
+                <a class="nav-link" onclick="showView('settings'); closeSidebarOnMobile();"><i class="fas fa-cog"></i> Settings</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Live</div>
+                <a class="nav-link" onclick="showView('liveclass'); closeSidebarOnMobile();" style="color: var(--danger);"><i class="fas fa-video"></i> <b>Live Class</b></a>
             </div>
             <div id="sidebar-classes"></div>
             <div style="padding: 20px 12px; border-top: 1px solid #e2e8f0; margin-top: auto;">
@@ -246,6 +305,68 @@
 
     <div class="toast" id="toast"></div>
 
+    <!-- Live Class Teacher Modal -->
+    <div class="modal-overlay" id="liveClassModal">
+        <div class="modal" style="max-width: 500px;">
+            <h2><i class="fas fa-video" style="color: var(--danger);"></i> Live Class</h2>
+            <div id="liveClassControls" style="margin: 20px 0;">
+                <div id="liveClassInactive">
+                    <p style="color: var(--gray); margin-bottom: 15px;">Start a live video class. Students will see a "Join" button on their dashboard.</p>
+                    <div class="form-group">
+                        <label>Class Name (optional)</label>
+                        <input type="text" id="liveClassName" placeholder="e.g. M.4/1 English" style="width: 100%;">
+                    </div>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px;" onclick="startLiveClass()"><i class="fas fa-broadcast-tower"></i> Go Live</button>
+                </div>
+                <div id="liveClassActive" style="display: none;">
+                    <div class="live-badge active" style="margin-bottom: 15px;"><i class="fas fa-circle"></i> LIVE NOW</div>
+                    <p style="font-size: 13px; color: var(--gray); margin-bottom: 10px;">Share this class code with students:</p>
+                    <div class="class-code-display" id="liveClassCode">----</div>
+                    <p style="font-size: 12px; color: var(--gray); margin-top: 10px;">Or students click "Join Live Class" on their dashboard.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="openJitsiModal()"><i class="fas fa-video"></i> Open Video</button>
+                        <button class="btn btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="endLiveClass()"><i class="fas fa-stop"></i> End Live</button>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4 style="font-size: 13px; margin-bottom: 10px;"><i class="fas fa-users"></i> Students Online</h4>
+                        <div class="live-grid" id="liveStudentsGrid"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-outline" onclick="closeModal('liveClassModal')" style="width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- Jitsi Video Modal -->
+    <div class="modal-overlay" id="jitsiModal">
+        <div class="modal" style="max-width: 900px; width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2><i class="fas fa-video" style="color: var(--primary);"></i> Video Classroom</h2>
+                <button class="btn btn-sm btn-outline" onclick="closeModal('jitsiModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="jitsiContainer"></div>
+            <p style="font-size: 12px; color: var(--gray); margin-top: 10px; text-align: center;"><i class="fas fa-shield-alt"></i> Powered by Jitsi Meet — no account required</p>
+        </div>
+    </div>
+
+    <!-- Student Join Live Class Modal -->
+    <div class="modal-overlay" id="studentJoinLiveModal">
+        <div class="modal" style="max-width: 400px;">
+            <h2><i class="fas fa-video" style="color: var(--primary);"></i> Join Live Class</h2>
+            <div style="margin: 20px 0;">
+                <div id="studentLiveAvailable" style="display: none;">
+                    <div class="live-badge active" style="margin-bottom: 15px; justify-content: center;"><i class="fas fa-circle"></i> CLASS IS LIVE</div>
+                    <p style="color: var(--gray); font-size: 13px; margin-bottom: 15px;">Your teacher has started a live video class. Click below to join.</p>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="studentJoinLiveVideo()"><i class="fas fa-sign-in-alt"></i> Join Video Class</button>
+                </div>
+                <div id="studentLiveNotAvailable">
+                    <p style="color: var(--gray); text-align: center; padding: 20px;"><i class="fas fa-clock" style="font-size: 32px; color: var(--gray-light); margin-bottom: 10px; display: block;"></i>No live class is currently running.<br>Check back when your teacher starts one.</p>
+                </div>
+            </div>
+            <button class="btn btn-outline" onclick="closeModal('studentJoinLiveModal')" style="width: 100%;">Close</button>
+        </div>
+    </div>
+
     
 <script>
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzhZU-oShaC-4dCV3edKitqmYfiK6YJTh659qfbtIfSS9EGF1BdbWwSQ184Ep0n4j3eOw/exec';
@@ -295,6 +416,9 @@ let currentUser = null;
 let isOnline = false;
 let editingScore = null;
 let editingAtt = null;
+let liveClassSession = null;
+let jitsiApi = null;
+let liveCheckInterval = null;
 
 function requireTeacher() {
     if (!currentUser || currentUser.type !== 'teacher') {
@@ -338,6 +462,179 @@ function saveStudentProfile() {
     setTimeout(() => showStudentDashboard(), 500);
 }
 
+
+// ===== LIVE CLASS FUNCTIONS =====
+
+function openLiveClassModal() {
+    const saved = JSON.parse(localStorage.getItem('tonny_live_class'));
+    if (saved && saved.active && new Date().getTime() - saved.startTime < 3 * 60 * 60 * 1000) {
+        liveClassSession = saved;
+        document.getElementById('liveClassInactive').style.display = 'none';
+        document.getElementById('liveClassActive').style.display = 'block';
+        document.getElementById('liveClassCode').innerText = saved.code;
+        updateLiveStudentsGrid();
+    } else {
+        document.getElementById('liveClassInactive').style.display = 'block';
+        document.getElementById('liveClassActive').style.display = 'none';
+    }
+    openModal('liveClassModal');
+}
+
+function startLiveClass() {
+    const clsName = document.getElementById('liveClassName').value.trim() || 'Tonny Class';
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    liveClassSession = {
+        active: true,
+        code: code,
+        className: clsName,
+        startTime: new Date().getTime(),
+        students: [],
+        teacherId: currentUser ? 'teacher' : 'host'
+    };
+    localStorage.setItem('tonny_live_class', JSON.stringify(liveClassSession));
+    document.getElementById('liveClassInactive').style.display = 'none';
+    document.getElementById('liveClassActive').style.display = 'block';
+    document.getElementById('liveClassCode').innerText = code;
+    updateLiveStudentsGrid();
+    showToast('Live class started! Code: ' + code);
+}
+
+function endLiveClass() {
+    liveClassSession = null;
+    localStorage.removeItem('tonny_live_class');
+    if (jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+    document.getElementById('liveClassInactive').style.display = 'block';
+    document.getElementById('liveClassActive').style.display = 'none';
+    showToast('Live class ended');
+}
+
+function openJitsiModal() {
+    closeModal('liveClassModal');
+    openModal('jitsiModal');
+    const roomName = liveClassSession ? 'tonny-' + liveClassSession.code : 'tonny-english-hub-' + Date.now();
+    const domain = 'meet.jit.si';
+    const options = {
+        roomName: roomName,
+        width: '100%',
+        height: '100%',
+        parentNode: document.getElementById('jitsiContainer'),
+        configOverwrite: {
+            startWithAudioMuted: false,
+            startWithVideoMuted: false,
+            prejoinPageEnabled: false
+        },
+        interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            DEFAULT_BACKGROUND: '#f8fafc'
+        }
+    };
+    if (jitsiApi) jitsiApi.dispose();
+    jitsiApi = new JitsiMeetExternalAPI(domain, options);
+}
+
+function updateLiveStudentsGrid() {
+    const grid = document.getElementById('liveStudentsGrid');
+    if (!liveClassSession || !liveClassSession.students.length) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--gray); font-size: 12px;">No students joined yet</p>';
+        return;
+    }
+    grid.innerHTML = liveClassSession.students.map(s => {
+        const isRecent = new Date().getTime() - s.joinTime < 5 * 60 * 1000;
+        return `<div class="live-student-card ${isRecent ? 'recent' : 'online'}">
+            <div class="live-student-dot"></div>
+            <div style="margin-top: 4px; font-weight: 600;">${s.name}</div>
+            <div class="status">${s.class}</div>
+        </div>`;
+    }).join('');
+}
+
+function checkLiveClassStatus() {
+    const saved = JSON.parse(localStorage.getItem('tonny_live_class'));
+    const isActive = saved && saved.active && new Date().getTime() - saved.startTime < 3 * 60 * 60 * 1000;
+
+    // Update student dashboard live button
+    const studentLiveBtn = document.getElementById('studentLiveBtn');
+    if (studentLiveBtn) {
+        if (isActive) {
+            studentLiveBtn.innerHTML = '<i class="fas fa-video"></i> Join Live Class';
+            studentLiveBtn.style.background = 'var(--danger)';
+            studentLiveBtn.style.animation = 'pulse-live 2s infinite';
+        } else {
+            studentLiveBtn.innerHTML = '<i class="fas fa-video-slash"></i> No Live Class';
+            studentLiveBtn.style.background = 'var(--gray)';
+            studentLiveBtn.style.animation = 'none';
+        }
+    }
+
+    // Update teacher modal if open
+    if (document.getElementById('liveClassModal').classList.contains('show')) {
+        if (saved && saved.students) {
+            liveClassSession = saved;
+            updateLiveStudentsGrid();
+        }
+    }
+}
+
+function studentJoinLive() {
+    const saved = JSON.parse(localStorage.getItem('tonny_live_class'));
+    const isActive = saved && saved.active && new Date().getTime() - saved.startTime < 3 * 60 * 60 * 1000;
+
+    if (isActive) {
+        document.getElementById('studentLiveAvailable').style.display = 'block';
+        document.getElementById('studentLiveNotAvailable').style.display = 'none';
+
+        // Record student joining
+        if (currentUser && currentUser.type === 'student') {
+            const alreadyJoined = saved.students.find(s => s.number === currentUser.student.number && s.class === currentUser.class);
+            if (!alreadyJoined) {
+                saved.students.push({
+                    name: currentUser.student.name,
+                    number: currentUser.student.number,
+                    class: currentUser.class,
+                    joinTime: new Date().getTime()
+                });
+                localStorage.setItem('tonny_live_class', JSON.stringify(saved));
+            }
+        }
+    } else {
+        document.getElementById('studentLiveAvailable').style.display = 'none';
+        document.getElementById('studentLiveNotAvailable').style.display = 'block';
+    }
+    openModal('studentJoinLiveModal');
+}
+
+function studentJoinLiveVideo() {
+    const saved = JSON.parse(localStorage.getItem('tonny_live_class'));
+    if (!saved || !saved.active) { showToast('Class has ended'); return; }
+
+    closeModal('studentJoinLiveModal');
+    openModal('jitsiModal');
+    const roomName = 'tonny-' + saved.code;
+    const domain = 'meet.jit.si';
+    const displayName = currentUser && currentUser.type === 'student' 
+        ? currentUser.student.name 
+        : 'Guest';
+    const options = {
+        roomName: roomName,
+        width: '100%',
+        height: '100%',
+        parentNode: document.getElementById('jitsiContainer'),
+        userInfo: { displayName: displayName },
+        configOverwrite: {
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
+            prejoinPageEnabled: false
+        },
+        interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false
+        }
+    };
+    if (jitsiApi) jitsiApi.dispose();
+    jitsiApi = new JitsiMeetExternalAPI(domain, options);
+}
+
 function initData() {
     CLASS_LIST.forEach(cls => {
         let students = [];
@@ -360,6 +657,10 @@ function initData() {
     if(saved) classData = saved;
     attendanceData = JSON.parse(localStorage.getItem('um_att_final')) || {};
     worksheets = JSON.parse(localStorage.getItem('um_ws_final')) || [];
+
+    // Start live class status polling
+    if (liveCheckInterval) clearInterval(liveCheckInterval);
+    liveCheckInterval = setInterval(checkLiveClassStatus, 5000);
 }
 
 function applyRegistrations() {
@@ -483,6 +784,18 @@ function enterTeacherPortal() {
 }
 
 function logout() { currentUser = null; location.reload(); }
+
+function toggleSidebar() {
+    document.getElementById('teacherSidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+function closeSidebarOnMobile() {
+    if (window.innerWidth <= 900) {
+        document.getElementById('teacherSidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+}
 
 function renderStudentLogin() {
     const content = document.getElementById('studentContent');
@@ -625,6 +938,11 @@ function showStudentDashboard() {
                 <p style="color: var(--gray);">Class ${cls} | Student #${s.number}</p>
                 ${isOnline ? '<span class="sync-status online"><i class="fas fa-cloud"></i> Cloud Sync Active</span>' : '<span class="sync-status offline"><i class="fas fa-database"></i> Local Mode</span>'}
             </div>
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <h3><i class="fas fa-video" style="color: var(--danger);"></i> Live Class</h3>
+                <p style="font-size: 13px; color: var(--gray); margin: 10px 0;">Join your teacher's live video class when it's active.</p>
+                <button class="btn" style="width: 100%; justify-content: center; background: var(--gray); color: white;" id="studentLiveBtn" onclick="studentJoinLive()"><i class="fas fa-video-slash"></i> No Live Class</button>
+            </div>
             <div class="card">
                 <h3><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Daily Attendance</h3>
                 <p style="font-size: 13px; color: var(--gray); margin: 10px 0;">
@@ -730,7 +1048,7 @@ function renderSidebar() {
     ['M.1', 'M.4', 'M.5', 'M.6'].forEach(lvl => {
         html += `<div class="nav-section"><div class="nav-section-title">Mattayom ${lvl.split('.')[1]}</div>`;
         CLASS_LIST.filter(cl => cl.startsWith(lvl)).forEach(cl => {
-            html += `<a class="nav-link" onclick="viewClass('${cl}')"><i class="fas fa-users"></i> ${cl}</a>`;
+            html += `<a class="nav-link" onclick="viewClass('${cl}'); closeSidebarOnMobile();"><i class="fas fa-users"></i> ${cl}</a>`;
         });
         html += `</div>`;
     });
@@ -743,13 +1061,14 @@ function showView(view) {
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     if (view === 'dashboard') {
         content.innerHTML = `<div class="header"><h1>Ultimate Portal</h1><div style="display:flex;gap:10px"><button class="btn btn-success" onclick="loadAllDataFromSheets()"><i class="fas fa-sync"></i> Sync from Sheets</button></div></div>
-        <div class="card"><h3>2026 Academic Year Master Hub</h3><p>All data syncs to Google Sheets automatically. Students can self-register. Teachers can edit scores and attendance.</p></div>
+        <div class="card"><h3>2026 Tonny English Hub</h3><p>All data syncs to Google Sheets automatically. Students can self-register. Teachers can edit scores and attendance.</p></div>
         <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px">
             <div class="card" style="text-align:center"><h2>24</h2><p>Classes</p></div>
             <div class="card" style="text-align:center"><h2>${worksheets.length}</h2><p>Tasks Created</p></div>
             <div class="card" style="text-align:center"><h2>${registrations.length}</h2><p>New Registrations</p></div>
         </div>`;
-    } else if (view === 'attendance') renderAttendance();
+    } else if (view === 'liveclass') { renderLiveClassView(); }
+    else if (view === 'attendance') renderAttendance();
     else if (view === 'gradebook') renderGradebook();
     else if (view === 'worksheets') renderWorksheetList();
     else if (view === 'registrations') renderRegistrations();
@@ -769,11 +1088,11 @@ function viewClass(cls) {
 function renderAttendance() {
     if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
-    content.innerHTML = `<div class="header"><h1>Attendance</h1><div style="display:flex; gap:10px; align-items:center;">
-        ${isOnline ? '<span class="sync-status online"><i class="fas fa-cloud"></i> Google Sheets</span>' : '<span class="sync-status offline"><i class="fas fa-database"></i> Local Only</span>'}
-        <input type="date" id="attDate" value="${today}" onchange="updateAttendanceTable()" style="padding:8px; border-radius:8px; border:1px solid #ddd">
-        <select id="attClass" onchange="updateAttendanceTable()">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
-        <button class="btn btn-primary btn-sm" onclick="showLinks()">Get IDs</button></div></div>
+    content.innerHTML = `<div class="header"><h1>Attendance</h1><div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
+        ${isOnline ? '<span class="sync-status online"><i class="fas fa-cloud"></i> Sheets</span>' : '<span class="sync-status offline"><i class="fas fa-database"></i> Local</span>'}
+        <input type="date" id="attDate" value="${today}" onchange="updateAttendanceTable()" style="padding:8px; border-radius:8px; border:1px solid #ddd; min-height:44px;">
+        <select id="attClass" onchange="updateAttendanceTable()" style="min-height:44px; padding:8px; border-radius:8px; border:1px solid #ddd;">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+        <button class="btn btn-primary btn-sm" onclick="showLinks()" style="min-height:44px;">Get IDs</button></div></div>
         <div class="card table-container" id="attTable"></div>`;
     updateAttendanceTable();
 }
@@ -822,7 +1141,7 @@ function showLinks() {
 function renderGradebook() {
     if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
-    content.innerHTML = `<div class="header"><h1>Master Gradebook</h1><select id="gbClass" onchange="updateGradebookTable()">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div><div class="card table-container" id="gbTable"></div>`;
+    content.innerHTML = `<div class="header"><h1>Master Gradebook</h1><select id="gbClass" onchange="updateGradebookTable()" style="min-height:44px; padding:8px; border-radius:8px; border:1px solid #ddd;">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div><div class="card table-container" id="gbTable"></div>`;
     updateGradebookTable();
 }
 
@@ -916,10 +1235,15 @@ function addQuestion() {
     const type = document.getElementById('wsType').value, div = document.createElement('div');
     div.className = 'card'; div.style.background = 'var(--gray-light)';
     if(type === 'oral') { 
-        div.innerHTML = `<label>Target Text to Speak</label><input type="text" class="q-text" style="width:100%; padding:8px">`; 
+        div.innerHTML = `<label>Target Text to Speak</label><input type="text" class="q-text" style="width:100%; padding:8px; margin-bottom:10px">
+        <label>Image/Diagram URL (optional)</label><input type="text" class="q-image" placeholder="https://example.com/image.jpg" style="width:100%; padding:8px; margin-bottom:10px">
+        <label>Short Story / Context (optional)</label><textarea class="q-story" placeholder="Enter a short story, passage, or context for the student to read..." style="width:100%; padding:8px; min-height:80px; border-radius:8px; border:1px solid #e2e8f0; font-family:inherit; margin-bottom:10px;"></textarea>`; 
     } else {
         let audio = (type==='listening') ? `<label>Audio Link</label><input type="text" class="q-audio" style="width:100%; margin-bottom:10px">` : '';
-        div.innerHTML = audio + `<input type="text" class="q-text" placeholder="Question" style="width:100%; margin-bottom:10px"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px"><input type="text" class="q-opt" placeholder="A"><input type="text" class="q-opt" placeholder="B"><input type="text" class="q-opt" placeholder="C"><input type="text" class="q-opt" placeholder="D"></div><select class="q-correct" style="margin-top:10px; width:100%"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>`;
+        div.innerHTML = audio + `<input type="text" class="q-text" placeholder="Question" style="width:100%; margin-bottom:10px">
+        <label>Image/Diagram URL (optional)</label><input type="text" class="q-image" placeholder="https://example.com/image.jpg" style="width:100%; padding:8px; margin-bottom:10px">
+        <label>Short Story / Passage (optional)</label><textarea class="q-story" placeholder="Enter a short story, passage, or reading material..." style="width:100%; padding:8px; min-height:80px; border-radius:8px; border:1px solid #e2e8f0; font-family:inherit; margin-bottom:10px;"></textarea>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px"><input type="text" class="q-opt" placeholder="A"><input type="text" class="q-opt" placeholder="B"><input type="text" class="q-opt" placeholder="C"><input type="text" class="q-opt" placeholder="D"></div><select class="q-correct" style="margin-top:10px; width:100%"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>`;
     }
     document.getElementById('questionBuilders').appendChild(div);
 }
@@ -929,6 +1253,8 @@ async function saveWorksheet() {
     const qs = Array.from(b).map(x => ({ 
         text: x.querySelector('.q-text').value, 
         audio: x.querySelector('.q-audio')?.value || '', 
+        image: x.querySelector('.q-image')?.value || '', 
+        story: x.querySelector('.q-story')?.value || '', 
         options: x.querySelectorAll('.q-opt') ? Array.from(x.querySelectorAll('.q-opt')).map(o => o.value) : [], 
         correct: x.querySelector('.q-correct') ? parseInt(x.querySelector('.q-correct').value) : x.querySelector('.q-text').value 
     })); 
@@ -959,12 +1285,23 @@ function startWs(id) {
     }
     let html = '';
     activeWs.questions.forEach((q, i) => {
-        html += `<div class="card">`;
-        if(activeWs.type === 'listening' && q.audio) html += `<audio controls style="width:100%"><source src="${q.audio}"></audio>`;
+        html += `<div class="card" style="margin-bottom:15px;">`;
+
+        // Display image/diagram if provided
+        if(q.image) {
+            html += `<div style="text-align:center; margin-bottom:15px;"><img src="${q.image}" style="max-width:100%; border-radius:8px; max-height:300px; object-fit:contain;" alt="Question image" onerror="this.style.display='none'"></div>`;
+        }
+
+        // Display short story/passage if provided
+        if(q.story) {
+            html += `<div style="background: var(--gray-light); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; line-height: 1.8; border-left: 3px solid var(--primary);"><i class="fas fa-book-open" style="color: var(--primary); margin-right: 8px;"></i><b>Read this:</b><p style="margin-top:8px; margin-bottom:0;">${q.story}</p></div>`;
+        }
+
+        if(activeWs.type === 'listening' && q.audio) html += `<audio controls style="width:100%; margin-bottom:15px;"><source src="${q.audio}"></audio>`;
         if(activeWs.type === 'oral') { 
-            html += `<p>Say:</p><h2>"${q.text}"</h2><div style="text-align:center"><button class="mic-btn" id="mic-${i}" onclick="runSpeech(${i})"><i class="fas fa-microphone"></i></button></div><div id="result-${i}"></div>`; 
+            html += `<p><b>Question ${i+1}:</b></p><h3 style="margin:10px 0; font-size:18px;">"${q.text}"</h3><div style="text-align:center; margin:20px 0;"><button class="mic-btn" id="mic-${i}" onclick="runSpeech(${i})"><i class="fas fa-microphone"></i></button></div><div id="result-${i}"></div>`; 
         } else { 
-            html += `<p><b>${i+1}. ${q.text}</b></p>${q.options.map((opt, oi) => `<label style="display:block; font-size:13px; margin:3px 0"><input type="radio" name="q${i}" value="${oi}"> ${opt}</label>`).join('')}`; 
+            html += `<p><b>${i+1}. ${q.text}</b></p>${q.options.map((opt, oi) => `<label style="display:block; font-size:14px; margin:8px 0; padding:10px; background:var(--gray-light); border-radius:6px; cursor:pointer;"><input type="radio" name="q${i}" value="${oi}" style="margin-right:8px;"> ${opt}</label>`).join('')}`; 
         }
         html += `</div>`;
     });
@@ -1011,6 +1348,35 @@ async function submitWorksheet() {
     closeModal('doWorksheetModal'); 
     showToast("Submitted!");
     if (currentUser?.type === 'student') setTimeout(() => showStudentDashboard(), 500);
+}
+
+function renderLiveClassView() {
+    if (!requireTeacher()) return;
+    const content = document.getElementById('mainContent');
+    const saved = JSON.parse(localStorage.getItem('tonny_live_class'));
+    const isActive = saved && saved.active && new Date().getTime() - saved.startTime < 3 * 60 * 60 * 1000;
+
+    content.innerHTML = `<div class="header"><h1><i class="fas fa-video" style="color: var(--danger);"></i> Live Class</h1></div>
+    <div class="card" style="text-align: center; ${isActive ? 'border: 2px solid var(--danger);' : ''}">
+        ${isActive ? `<div class="live-badge active" style="margin-bottom: 20px; font-size: 14px; padding: 10px 20px;"><i class="fas fa-circle"></i> LIVE NOW — ${saved.className}</div>
+        <div class="class-code-display" style="margin: 20px 0;">${saved.code}</div>
+        <p style="color: var(--gray); font-size: 13px;">Class code for students</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="openJitsiModal()" style="min-height: 44px;"><i class="fas fa-video"></i> Open Video</button>
+            <button class="btn btn-outline" onclick="openLiveClassModal()" style="min-height: 44px;"><i class="fas fa-users"></i> Students</button>
+            <button class="btn btn-danger" onclick="endLiveClass(); renderLiveClassView();" style="min-height: 44px;"><i class="fas fa-stop"></i> End</button>
+        </div>` 
+        : `<div style="font-size: 48px; color: var(--gray-light); margin: 20px 0;"><i class="fas fa-video-slash"></i></div>
+        <h3>No Live Class Running</h3>
+        <p style="color: var(--gray); margin: 10px 0 20px;">Start a live video class for your students to join.</p>
+        <button class="btn btn-danger" onclick="openLiveClassModal()" style="min-height: 44px;"><i class="fas fa-broadcast-tower"></i> Start Live Class</button>`}
+    </div>
+    ${isActive ? `<div class="card">
+        <h3><i class="fas fa-users" style="color: var(--primary);"></i> Students Joined (${saved.students.length})</h3>
+        <div class="live-grid" style="margin-top: 15px;">
+            ${saved.students.length === 0 ? '<p style="grid-column: 1/-1; text-align: center; color: var(--gray);">No students have joined yet</p>' : saved.students.map(s => `<div class="live-student-card online"><div class="live-student-dot"></div><div style="margin-top: 4px; font-weight: 600;">${s.name}</div><div class="status">${s.class} #${s.number}</div></div>`).join('')}
+        </div>
+    </div>` : ''}`;
 }
 
 function renderWorksheetList() {
