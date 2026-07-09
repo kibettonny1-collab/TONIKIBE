@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mattayom Ultimate Pro 2026 - Dual Semester</title>
+    <title>Mattayom Ultimate Pro 2026</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -129,7 +129,7 @@
         <div class="login-card">
             <div class="logo-icon"><i class="fas fa-microchip"></i></div>
             <h1>Tonny English Hub</h1>
-            <p>Mattayom Ultimate Pro 2026<br><small style="color:var(--gray)">Dual Semester Support</small></p>
+            <p>Mattayom Ultimate Pro 2026</p>
             <button class="login-btn login-btn-student" onclick="enterStudentPortal()">
                 <i class="fas fa-user-graduate"></i> Student Portal
             </button>
@@ -142,7 +142,7 @@
 
     <div id="studentPortal" style="display:none;">
         <div style="background: var(--primary); color: white; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-weight: 700;"><i class="fas fa-user-graduate"></i> Student Portal <span style="font-size: 12px; opacity: 0.8; margin-left: 8px; padding: 2px 8px; background: rgba(255,255,255,0.2); border-radius: 12px;">Semester ${currentSemester}</span></div>
+            <div style="font-weight: 700;"><i class="fas fa-user-graduate"></i> Student Portal</div>
             <button class="btn" style="background: rgba(255,255,255,0.2); color: white;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
         <main class="main-content" id="studentContent" style="margin-left: 0; padding: 24px;"></main>
@@ -354,28 +354,42 @@ let activeWs = null;
 const today = new Date().toISOString().split('T')[0];
 let currentUser = null;
 let isOnline = false;
+
+// Event delegation for dynamically created buttons
+document.addEventListener('click', function(event) {
+    // Handle "Back to Login" link
+    const backLink = event.target.closest('[data-action="back-to-login"]');
+    if (backLink) {
+        event.preventDefault();
+        renderStudentLogin();
+        return;
+    }
+
+    // Handle "Show Registration" button
+    const regButton = event.target.closest('[data-action="show-registration"]');
+    if (regButton) {
+        event.preventDefault();
+        showRegistration();
+        return;
+    }
+});
+
+
 let editingScore = null;
 let editingAtt = null;
 let currentSemester = 1;
 
 function getSemPrefix() { return 'sem' + currentSemester + '_'; }
 function getSemKey(base) { return getSemPrefix() + base; }
+
 function switchSemester(sem) {
     if (currentSemester === sem) return;
     currentSemester = sem;
-
-    // Update UI buttons
     document.getElementById('sem1Btn').classList.toggle('active', sem === 1);
     document.getElementById('sem2Btn').classList.toggle('active', sem === 2);
     document.getElementById('navSemesterTitle').innerText = 'Semester ' + sem + ' Command';
-
-    // Save semester preference
     localStorage.setItem('tonny_current_semester', sem);
-
-    // Reload all data for the new semester
     initData();
-
-    // Refresh current view
     showToast('Switched to Semester ' + sem);
     showView('dashboard');
 }
@@ -384,7 +398,6 @@ function loadSemesterPreference() {
     const saved = localStorage.getItem('tonny_current_semester');
     if (saved) {
         currentSemester = parseInt(saved);
-        // Update UI to reflect loaded semester
         setTimeout(() => {
             const sem1Btn = document.getElementById('sem1Btn');
             const sem2Btn = document.getElementById('sem2Btn');
@@ -397,7 +410,6 @@ function loadSemesterPreference() {
         }, 100);
     }
 }
-
 
 
 
@@ -638,29 +650,25 @@ function logout() { currentUser = null; location.reload(); }
 function renderStudentLogin() {
     const content = document.getElementById('studentContent');
     content.innerHTML = `
-        <div style="max-width: 400px; margin: 40px auto;">
+        <div style="max-width: 420px; margin: 40px auto;">
             <div class="login-card" style="box-shadow: var(--shadow-lg);">
                 <div class="logo-icon"><i class="fas fa-user-graduate"></i></div>
                 <h2>Student Login</h2>
-                <div class="form-group" style="margin-top: 20px;">
-                    <label>Select Your Class</label>
-                    <select id="studentClassSelect" onchange="updateStudentNumberDropdown()">
-                        <option value="">-- Choose Class --</option>
-                        ${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}
-                    </select>
+                <p style="color: var(--gray); font-size: 13px; margin-bottom: 20px;">Enter your School ID to access your dashboard</p>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>School ID <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="studentLoginId" placeholder="e.g. 25400">
                 </div>
-                <div class="form-group">
-                    <label>Select Your Name</label>
-                    <select id="studentNumberSelect" disabled>
-                        <option value="">-- Choose Name --</option>
-                    </select>
-                </div>
-                <button class="login-btn login-btn-student" style="margin-top: 10px;" onclick="loginStudent()" disabled id="studentLoginBtn">
-                    <i class="fas fa-sign-in-alt"></i> Enter
+
+                <button class="login-btn login-btn-student" style="margin-top: 10px;" onclick="loginStudent()">
+                    <i class="fas fa-sign-in-alt"></i> Login
                 </button>
+
                 <div class="login-divider">or</div>
+
                 <button class="login-btn login-btn-teacher" style="background:var(--success-light); color:var(--success); border-color:var(--success);" onclick="showRegistration()">
-                    <i class="fas fa-user-plus"></i> New Student? Register
+                    <i class="fas fa-user-plus"></i> New Student? Register First
                 </button>
             </div>
         </div>`;
@@ -669,24 +677,39 @@ function renderStudentLogin() {
 function showRegistration() {
     const content = document.getElementById('studentContent');
     content.innerHTML = `
-        <div style="max-width: 400px; margin: 40px auto;">
+        <div style="max-width: 420px; margin: 40px auto;">
             <div class="login-card" style="box-shadow: var(--shadow-lg);">
                 <div class="logo-icon" style="background:var(--success)"><i class="fas fa-user-plus"></i></div>
                 <h2>New Student Registration</h2>
-                <div class="form-group" style="margin-top: 20px;">
-                    <label>Select Your Class</label>
+                <p style="color: var(--gray); font-size: 13px; margin-bottom: 20px;">Enter your details to register</p>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Class <span style="color: var(--danger);">*</span></label>
                     <select id="regClass">
                         <option value="">-- Choose Class --</option>
                         ${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label>Your Full Name</label>
+                    <label>Class Number (Roll) <span style="color: var(--danger);">*</span></label>
+                    <input type="number" id="regNumber" placeholder="e.g. 5" min="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Student ID <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="regId" placeholder="e.g. 25400">
+                </div>
+
+                <div class="form-group">
+                    <label>Full Name <span style="color: var(--danger);">*</span></label>
                     <input type="text" id="regName" placeholder="e.g. Master John Smith">
                 </div>
+
                 <button class="login-btn login-btn-student" style="margin-top: 10px;" onclick="registerStudent()">
                     <i class="fas fa-check"></i> Register Me
                 </button>
+
                 <p style="margin-top:15px; font-size:12px; color:var(--gray);">
                     <a href="#" onclick="renderStudentLogin()" style="color:var(--primary);">Back to Login</a>
                 </p>
@@ -696,43 +719,78 @@ function showRegistration() {
 
 async function registerStudent() {
     const cls = document.getElementById('regClass').value;
+    const num = parseInt(document.getElementById('regNumber').value);
+    const id = document.getElementById('regId').value.trim();
     const name = document.getElementById('regName').value.trim();
-    if (!cls || !name) { showToast('Please fill in all fields!'); return; }
 
-    const nextNum = getNextNumber(cls);
-    const newId = `REG-${Date.now()}`;
-    const reg = { id: newId, number: nextNum, name: name, class: cls, dateRegistered: new Date().toISOString(), unitResults: {} };
+    if (!cls || !num || !id || !name) { showToast('Please fill in all fields!'); return; }
 
-    registrations.push(reg);
-    localStorage.setItem(getSemKey('um_registrations'), JSON.stringify(registrations));
-    if (!classData[cls]) classData[cls] = [];
-    classData[cls].push({ number: nextNum, id: newId, name: name, unitResults: {} });
+    // Ensure class exists
+    if (!classData[cls]) {
+        classData[cls] = [];
+    }
+
+    // Check if class number already taken in this class
+    const existingNum = classData[cls].find(s => s.number === num);
+    if (existingNum) {
+        showToast('Class number ' + num + ' is already taken in ' + cls + ' by ' + existingNum.name);
+        return;
+    }
+
+    // Check if ID already exists in ANY class
+    for (const c of CLASS_LIST) {
+        if (classData[c] && Array.isArray(classData[c])) {
+            const existing = classData[c].find(s => s.id === id);
+            if (existing) {
+                showToast('This Student ID is already registered in ' + c);
+                return;
+            }
+        }
+    }
+
+    const student = { number: num, id: id, name: name, unitResults: {} };
+    classData[cls].push(student);
+    classData[cls].sort((a, b) => a.number - b.number);
     localStorage.setItem(getSemKey('um_data_final'), JSON.stringify(classData));
 
-    await syncRegistrationToSheets(reg);
-    showToast(`Registered! You are #${nextNum} in ${cls}`);
+    showToast(`Registered! You are #${num} in ${cls}`);
 
-    currentUser = { type: 'student', class: cls, student: classData[cls].find(s => s.number === nextNum) };
+    currentUser = { type: 'student', class: cls, student: student };
     showStudentDashboard();
 }
 
-function updateStudentNumberDropdown() {
-    const cls = document.getElementById('studentClassSelect').value;
-    const numSelect = document.getElementById('studentNumberSelect');
-    const btn = document.getElementById('studentLoginBtn');
-    if (!cls) { numSelect.innerHTML = '<option value="">-- Choose Name --</option>'; numSelect.disabled = true; btn.disabled = true; return; }
-    const students = classData[cls] || [];
-    numSelect.innerHTML = '<option value="">-- Choose Name --</option>' + students.map(s => `<option value="${s.number}">#${s.number} - ${s.name}</option>`).join('');
-    numSelect.disabled = false;
-    numSelect.onchange = () => { btn.disabled = numSelect.value === ''; };
-}
+
 
 function loginStudent() {
-    const cls = document.getElementById('studentClassSelect').value;
-    const num = parseInt(document.getElementById('studentNumberSelect').value);
-    const student = classData[cls]?.find(s => s.number === num);
-    if (!student) { showToast('Student not found!'); return; }
-    currentUser = { type: 'student', class: cls, student: student };
+    const id = document.getElementById('studentLoginId').value.trim();
+
+    if (!id) {
+        showToast('Please enter your School ID');
+        return;
+    }
+
+    // Search across all classes for this student ID
+    let foundStudent = null;
+    let foundClass = null;
+
+    for (const cls of CLASS_LIST) {
+        if (classData[cls] && Array.isArray(classData[cls])) {
+            const student = classData[cls].find(s => s.id === id);
+            if (student) {
+                foundStudent = student;
+                foundClass = cls;
+                break;
+            }
+        }
+    }
+
+    if (!foundStudent) {
+        showToast('School ID not found. Please register first.');
+        return;
+    }
+
+    currentUser = { type: 'student', class: foundClass, student: foundStudent };
+    showToast('Welcome, ' + foundStudent.name + '!');
     showStudentDashboard();
 }
 
@@ -769,7 +827,7 @@ function showStudentDashboard() {
                 ${isOnline ? '<span class="sync-status online"><i class="fas fa-cloud"></i> Cloud Sync Active</span>' : '<span class="sync-status offline"><i class="fas fa-database"></i> Local Mode</span>'}
             </div>
             <div class="card">
-                <h3><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Daily Attendance <span style="font-size: 11px; color: var(--gray); font-weight: 500;">(Semester ${currentSemester})</span></h3>
+                <h3><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Daily Attendance</h3>
                 <p style="font-size: 13px; color: var(--gray); margin: 10px 0;">
                     ${isPresent ? '<span style="color: var(--success);"><i class="fas fa-check-circle"></i> You are marked PRESENT today!</span>' : 'Click the button below to mark yourself present for today.'}
                 </p>
@@ -780,11 +838,11 @@ function showStudentDashboard() {
                 </div>
             </div>
             <div class="card">
-                <h3><i class="fas fa-tasks" style="color: var(--warning);"></i> Your Tasks <span style="font-size: 11px; color: var(--gray); font-weight: 500;">(Semester ${currentSemester})</span></h3>
+                <h3><i class="fas fa-tasks" style="color: var(--warning);"></i> Your Tasks</h3>
                 ${worksheets.filter(w => w.class === cls).length === 0 ? '<p style="color: var(--gray);">No tasks assigned yet.</p>' : worksheets.filter(w => w.class === cls).map(w => `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--gray-light); border-radius: 8px; margin-bottom: 8px;"><div><b>${w.title}</b><br><span class="badge" style="background: ${w.type === 'oral' ? '#fce7f3' : w.type === 'listening' ? '#dbeafe' : '#e0e7ff'}; color: ${w.type === 'oral' ? '#be185d' : w.type === 'listening' ? '#1e40af' : '#4338ca'}">${w.type.toUpperCase()}</span></div><button class="btn btn-primary btn-sm" onclick="startWs(${w.id})">Start</button></div>`).join('')}
             </div>
             <div class="card">
-                <h3><i class="fas fa-chart-bar" style="color: var(--success);"></i> My Scores <span style="font-size: 11px; color: var(--gray); font-weight: 500;">(Semester ${currentSemester})</span></h3>
+                <h3><i class="fas fa-chart-bar" style="color: var(--success);"></i> My Scores</h3>
                 <table style="font-size: 12px;">
                     <thead><tr><th>Topic</th><th style="text-align:center">Score</th><th style="text-align:center">Max</th></tr></thead>
                     <tbody>${scoreRows}<tr style="border-top: 2px solid var(--primary);"><td><b>TOTAL</b></td><td style="text-align:center; font-weight: 800; color: var(--primary); font-size: 14px;">${Math.round(total * 10) / 10}</td><td style="text-align:center; color: var(--gray);">100</td></tr></tbody>
@@ -831,8 +889,8 @@ function showView(view) {
     const content = document.getElementById('mainContent');
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     if (view === 'dashboard') {
-        content.innerHTML = `<div class="header"><h1>Ultimate Portal <span class="semester-indicator"><i class="fas fa-calendar-alt"></i> Semester ${currentSemester}</span></h1><div style="display:flex;gap:10px"><button class="btn btn-success" onclick="loadAllDataFromSheets()"><i class="fas fa-sync"></i> Sync from Sheets</button></div></div>
-        <div class="card"><h3>2026 Academic Year - Semester ${currentSemester}</h3><p>All data syncs to Google Sheets automatically. Students can self-register. Teachers can edit scores and attendance.</p></div>
+        content.innerHTML = `<div class="header"><h1>Ultimate Portal</h1><div style="display:flex;gap:10px"><button class="btn btn-success" onclick="loadAllDataFromSheets()"><i class="fas fa-sync"></i> Sync from Sheets</button></div></div>
+        <div class="card"><h3>2026 Academic Year Master Hub</h3><p>All data syncs to Google Sheets automatically. Students can self-register. Teachers can edit scores and attendance.</p></div>
         <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px">
             <div class="card" style="text-align:center"><h2>24</h2><p>Classes</p></div>
             <div class="card" style="text-align:center"><h2>${worksheets.length}</h2><p>Tasks Created</p></div>
@@ -849,7 +907,7 @@ function viewClass(cls) {
     if (!requireTeacher()) return;
     const classWs = worksheets.filter(w => w.class === cls);
     const content = document.getElementById('mainContent');
-    content.innerHTML = `<div class="header"><h1>Class ${cls} <span class="semester-indicator"><i class="fas fa-calendar-alt"></i> Semester ${currentSemester}</span></h1><button class="btn btn-primary" onclick="openWsModal('${cls}')">New Task</button></div>
+    content.innerHTML = `<div class="header"><h1>Class ${cls}</h1><button class="btn btn-primary" onclick="openWsModal('${cls}')">New Task</button></div>
     <div class="card"><h3>Available Assignments</h3>
         <div style="margin-top:10px">${classWs.length === 0 ? '<p>No tasks yet.</p>' : classWs.map(w => `<div class="card" style="display:flex; justify-content:space-between; align-items:center; background:var(--gray-light); margin-bottom:10px; padding:10px"><div><b>${w.title}</b><br><small>${w.type.toUpperCase()}</small></div><button class="btn btn-primary btn-sm" onclick="startWs(${w.id})">Launch</button></div>`).join('')}
     </div></div>`;
@@ -858,7 +916,7 @@ function viewClass(cls) {
 function renderAttendance() {
     if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
-    content.innerHTML = `<div class="header"><h1>Attendance <span class="semester-indicator"><i class="fas fa-calendar-alt"></i> Semester ${currentSemester}</span></h1><div style="display:flex; gap:10px; align-items:center;">
+    content.innerHTML = `<div class="header"><h1>Attendance</h1><div style="display:flex; gap:10px; align-items:center;">
         ${isOnline ? '<span class="sync-status online"><i class="fas fa-cloud"></i> Google Sheets</span>' : '<span class="sync-status offline"><i class="fas fa-database"></i> Local Only</span>'}
         <input type="date" id="attDate" value="${today}" onchange="updateAttendanceTable()" style="padding:8px; border-radius:8px; border:1px solid #ddd">
         <select id="attClass" onchange="updateAttendanceTable()">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
@@ -911,7 +969,7 @@ function showLinks() {
 function renderGradebook() {
     if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
-    content.innerHTML = `<div class="header"><h1>Master Gradebook <span class="semester-indicator"><i class="fas fa-calendar-alt"></i> Semester ${currentSemester}</span></h1><select id="gbClass" onchange="updateGradebookTable()">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div><div class="card table-container" id="gbTable"></div>`;
+    content.innerHTML = `<div class="header"><h1>Master Gradebook</h1><select id="gbClass" onchange="updateGradebookTable()">${CLASS_LIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div><div class="card table-container" id="gbTable"></div>`;
     updateGradebookTable();
 }
 
@@ -967,7 +1025,7 @@ async function saveEditedScore() {
 function renderRegistrations() {
     if (!requireTeacher()) return;
     const content = document.getElementById('mainContent');
-    content.innerHTML = `<div class="header"><h1>Student Registrations <span class="semester-indicator"><i class="fas fa-calendar-alt"></i> Semester ${currentSemester}</span></h1></div>
+    content.innerHTML = `<div class="header"><h1>Student Registrations</h1></div>
     <div class="card table-container">
         <table>
             <thead><tr><th>Date</th><th>Class</th><th>Number</th><th>Name</th><th>ID</th></tr></thead>
@@ -1118,7 +1176,7 @@ async function submitWorksheet() {
 function renderWorksheetList() {
     if (!requireTeacher()) return; 
     const c = document.getElementById('mainContent'); 
-    c.innerHTML = `<div class="header"><h1>Task Hub <span class="semester-indicator"><i class="fas fa-calendar-alt"></i> Semester ${currentSemester}</span></h1><button class="btn btn-primary" onclick="openWsModal('')">New</button></div><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px">${worksheets.map(w => `<div class="card"><span class="badge" style="background:#ddd">${w.class}</span><h3 style="margin:10px 0">${w.title}</h3><button class="btn btn-primary btn-sm" onclick="startWs(${w.id})">Launch</button></div>`).join('')}</div>`; 
+    c.innerHTML = `<div class="header"><h1>Task Hub</h1><button class="btn btn-primary" onclick="openWsModal('')">New</button></div><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px">${worksheets.map(w => `<div class="card"><span class="badge" style="background:#ddd">${w.class}</span><h3 style="margin:10px 0">${w.title}</h3><button class="btn btn-primary btn-sm" onclick="startWs(${w.id})">Launch</button></div>`).join('')}</div>`; 
 }
 
 function openModal(id) { document.getElementById(id).classList.add('show'); }
@@ -1126,23 +1184,17 @@ function closeModal(id) { document.getElementById(id).classList.remove('show'); 
 function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 function renderSettings() {
     if (!requireTeacher()) return; 
-    document.getElementById('mainContent').innerHTML = `<div class="header"><h1>Settings <span class="semester-indicator"><i class="fas fa-calendar-alt"></i> Semester ${currentSemester}</span></h1></div>
+    document.getElementById('mainContent').innerHTML = `<div class="header"><h1>Settings</h1></div>
     <div class="card">
         <h3>Google Sheets Integration</h3>
         <p style="color:var(--gray); font-size:13px; margin:10px 0;">All data automatically syncs to your Google Sheet.</p>
         <button class="btn btn-success" onclick="loadAllDataFromSheets()" style="margin-right:10px;"><i class="fas fa-sync"></i> Sync Now</button>
         <button class="btn btn-outline" onclick="localStorage.clear(); location.reload();" style="color:var(--danger)">Reset Local Data</button>
-    </div>
-    <div class="card">
-        <h3>Semester Management</h3>
-        <p style="color:var(--gray); font-size:13px; margin:10px 0;">Currently managing <b>Semester ${currentSemester}</b>. Use the sidebar toggle to switch between semesters.</p>
-        <p style="color:var(--gray); font-size:12px; margin:10px 0;">Each semester has its own independent data: attendance, gradebook, tasks, and registrations.</p>
     </div>`; 
 }
 
 initData(); 
 handleAutoCheckin();
-loadSemesterPreference();
     </script>
 </body>
 </html>
